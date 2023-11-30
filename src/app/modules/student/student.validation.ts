@@ -36,7 +36,7 @@ const createStudentValidationSchema = z.object({
     student: z.object({
       name: studentNameValidationSchema,
       gender: z.enum(['male', 'female', 'other']),
-      dateOfBirth: z.date().optional(),
+      dateOfBirth: z.string().optional(),
       email: z.string().min(1, { message: 'Email is required' }),
       contactNumber: z
         .string()
@@ -52,7 +52,8 @@ const createStudentValidationSchema = z.object({
         .string()
         .min(1, { message: 'Permanent address is required' }),
       gurdian: guardianValidationSchema,
-      profilImage: z.string(),
+      profilImage: z.string().optional(),
+      admissionSemester: z.string(),
       // isDeleted: z.boolean(),
       // isDeleted: z.boolean().default(false),
       // status: z.enum(['in-progress', 'block']).default('in-progress'),

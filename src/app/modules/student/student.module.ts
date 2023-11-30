@@ -1,16 +1,10 @@
 import { Schema, model } from 'mongoose';
 import {
-  // StudentMethods,
   StudentModel,
   TStudent,
   Tguardian,
   TstudentName,
 } from './student.interface';
-// import bcrypt from 'bcrypt';
-// import config from '../../config';
-// import validator from 'validator';
-
-// Sub Schema
 const studentNameSchema = new Schema<TstudentName>({
   firstName: {
     type: String,
@@ -18,13 +12,6 @@ const studentNameSchema = new Schema<TstudentName>({
     minlength: [5, 'minimum 5 carecter'],
     maxlength: 10,
     trim: true,
-    // validate: {
-    //   validator: function (value: string) {
-    //     const firstName = value.charAt(0).toUpperCase() + value.slice(1);
-    //     return firstName === value;
-    //   },
-    //   message: '{VALUE} is not capitalize format',
-    // },
   },
   middleName: { type: String },
   lastName: {
@@ -86,7 +73,7 @@ const studentSchema = new Schema<TStudent, StudentModel>(
       required: [true, 'Gender is required'],
     },
     dateOfBirth: {
-      type: Date,
+      type: String,
     },
     email: {
       type: String,
@@ -117,6 +104,7 @@ const studentSchema = new Schema<TStudent, StudentModel>(
       required: [true, 'Guardian information is required'],
     },
     profilImage: { type: String },
+    admissionSemester: { type: Schema.Types.ObjectId, ref: 'AcademicSemester' },
     isDeleted: {
       type: Boolean,
       default: false,
