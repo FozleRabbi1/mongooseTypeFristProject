@@ -1,4 +1,5 @@
 import config from '../../config';
+import { TAcademicSemester } from '../academicSemester/academicSemester.interface';
 import AcademicSemester from '../academicSemester/academicSemister.module';
 import { TStudent } from '../student/student.interface';
 import { Student } from '../student/student.module';
@@ -18,11 +19,10 @@ const createStudentIntoDB = async (password: string, paylod: TStudent) => {
     paylod.admissionSemester,
   );
 
-  if (!admissionSemester) {
-    throw new Error(' Create a semester ');
-  }
-
-  userData.id = await generateStudentId(admissionSemester);
+  // if (!admissionSemester) {
+  //   throw new Error(' Create a semester ');
+  // }
+  userData.id = await generateStudentId(admissionSemester as TAcademicSemester);
 
   // set manually generated id
   // userData.id = '2023100003';
