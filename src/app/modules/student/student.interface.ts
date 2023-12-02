@@ -32,7 +32,8 @@ export type TStudent = {
   gurdian: Tguardian;
   profilImage?: string;
   admissionSemester: Types.ObjectId;
-  isDeleted: boolean;
+  academicDepartment: Types.ObjectId;
+  // isDeleted: boolean;
 };
 
 // for creating static

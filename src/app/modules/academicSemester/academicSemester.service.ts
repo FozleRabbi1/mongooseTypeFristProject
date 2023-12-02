@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import { academicSEmesterNameCodeMapper } from './academicSemester.constant';
 import { TAcademicSemester } from './academicSemester.interface';
 import AcademicSemester from './academicSemister.module';
+import { AppError } from '../../errors/appError';
+// import httpStatus from 'http-status';
 
 const getAllAcademicSemesterFromDB = async () => {
   const result = await AcademicSemester.find();
@@ -11,7 +13,7 @@ const getAllAcademicSemesterFromDB = async () => {
 
 const createAcademicSamesterIntoDB = async (payload: TAcademicSemester) => {
   if (academicSEmesterNameCodeMapper[payload.name] !== payload.code) {
-    throw new Error('Invalid semester Code');
+    throw new AppError(400, 'Invalid semester Code');
   }
   const result = await AcademicSemester.create(payload);
   return result;

@@ -4,14 +4,29 @@ import { Student } from './student.module';
 
 // =====>> get all students
 const getAllStudentFromDB = async () => {
-  const result = await Student.find();
+  const result = await Student.find()
+    .populate('admissionSemester')
+    .populate({
+      path: 'academicDepartment',
+      populate: {
+        path: 'academicFaculty',
+      },
+    });
   return result;
 };
 
 // =======>> get single student
 const getSingleStudentFromBD = async (id: string | number) => {
+  // const result = await Student.aggregate([{ $match: { id: id } }]);
   // const result = await Student.findOne({ id });
-  const result = await Student.aggregate([{ $match: { id: id } }]);
+  const result = await Student.findById(id)
+    .populate('admissionSemester')
+    .populate({
+      path: 'academicDepartment',
+      populate: {
+        path: 'academicFaculty',
+      },
+    });
   return result;
 };
 

@@ -54,6 +54,7 @@ const createStudentValidationSchema = z.object({
       gurdian: guardianValidationSchema,
       profilImage: z.string().optional(),
       admissionSemester: z.string(),
+      academicDepartment: z.string(),
       // isDeleted: z.boolean(),
       // isDeleted: z.boolean().default(false),
       // status: z.enum(['in-progress', 'block']).default('in-progress'),
