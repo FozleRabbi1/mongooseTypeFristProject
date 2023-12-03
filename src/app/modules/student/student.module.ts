@@ -109,10 +109,10 @@ const studentSchema = new Schema<TStudent, StudentModel>(
       type: Schema.Types.ObjectId,
       ref: 'AcademicDepartment',
     },
-    // isDeleted: {
-    //   type: Boolean,
-    //   default: false,
-    // },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     toJSON: {
@@ -121,7 +121,7 @@ const studentSchema = new Schema<TStudent, StudentModel>(
   },
 );
 
-// virtual
+// virtual  (data base a exist nai but clint a ta show korbe,,, ekhane virtual fulll name k pathabe ,,, but DB te full name fild nai)
 studentSchema.virtual('fullName').get(function () {
   return `${this.name.firstName} ${this.name.middleName} ${this.name.lastName} `;
 });

@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import config from '../../config';
 import { TAcademicSemester } from '../academicSemester/academicSemester.interface';
 import AcademicSemester from '../academicSemester/academicSemister.module';
@@ -6,6 +7,8 @@ import { Student } from '../student/student.module';
 import { TUser } from './user.interface';
 import { User } from './user.module';
 import { generateStudentId } from './user.utils';
+import { AppError } from '../../errors/appError';
+import httpStatus from 'http-status';
 
 const createStudentIntoDB = async (password: string, paylod: TStudent) => {
   // create a user Object
@@ -19,24 +22,33 @@ const createStudentIntoDB = async (password: string, paylod: TStudent) => {
     paylod.admissionSemester,
   );
 
-  // if (!admissionSemester) {
-  //   throw new Error(' Create a semester ');
-  // }
-  userData.id = await generateStudentId(admissionSemester as TAcademicSemester);
-
-  // set manually generated id
-  // userData.id = '2023100003';
-
-  const newUser = await User.create(userData);
-  // create a student =======>>>  ( ekhane object.keys(result) === ei code object ke Array te convart korbe,,, then amar .length diye check korbo ekhane data successfully add hoyse ki na )
-  if (Object.keys(newUser).length) {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    userData.id = await generateStudentId(
+      admissionSemester as TAcademicSemester,
+    );
+    // ====  ( create a user == transaction - 1)
+    const newUser = await User.create([userData], { session });
+    if (!newUser.length) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'faild to create user');
+    }
     // set id, and _id as user
-    paylod.id = newUser.id; // embedding id
-    paylod.user = newUser._id; // reference Id
+    paylod.id = newUser[0].id;
+    paylod.user = newUser[0]._id;
+    // ====  ( create a student == transaction - 2)
+    const newStudent = await Student.create([paylod], { session });
+    if (!newStudent.length) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'faild to create student');
+    }
+    await session.commitTransaction(); // commit korle ba commitTransaction() sahajje data parmanently database a save hoye jai
+    await session.endSession();
 
-    //  create a student
-    const newStudent = await Student.create(paylod);
     return newStudent;
+  } catch (err) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new AppError(httpStatus.BAD_REQUEST, 'Faild to create student');
   }
 };
 
