@@ -4,33 +4,69 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
 import httpStatus from 'http-status';
-import { ZodError } from 'zod';
+import { ZodError, ZodIssue } from 'zod';
+import { TErrorSourse } from '../globalInterface/error';
+import config from '../config';
+import { handleZodError } from '../errors/handleZodError';
+import { mongooseValidationError } from '../errors/mongooseValidationError';
+import { handleCastError } from '../errors/handleCastError';
+import { handleDublicateError } from '../errors/handleDublicateError';
+import { AppError } from '../errors/appError';
 
 export const globalErrorHandler: ErrorRequestHandler = (err, req, res, nex) => {
-  let statusCode = err.statusCode || httpStatus.INTERNAL_SERVER_ERROR;
+  let statusCode = 500;
   let message = err.message || 'Something went wrong';
-
-  type TErrorSourse = {
-    path: string | number;
-    message2: string;
-  }[];
-
   let errorSourse: TErrorSourse = [
     {
       path: '',
-      message2: 'Something went wrong',
+      message: 'Something went wrong',
     },
   ];
 
   if (err instanceof ZodError) {
-    statusCode = 400;
-    message = 'this is zod error';
+    const simplifiError = handleZodError(err);
+    statusCode = simplifiError?.statusCode;
+    message = simplifiError?.message;
+    errorSourse = simplifiError?.errorSourse;
+  } else if (err.name === 'ValidationError') {
+    const simplifiError = mongooseValidationError(err);
+    statusCode = simplifiError?.statusCode;
+    message = simplifiError?.message;
+    errorSourse = simplifiError?.errorSourse;
+  } else if (err.name === 'CastError') {
+    const simplifiError = handleCastError(err);
+    statusCode = simplifiError?.statusCode;
+    message = simplifiError?.message;
+    errorSourse = simplifiError?.errorSourse;
+  } else if (err.code === 11000) {
+    const simplifiError = handleDublicateError(err);
+    statusCode = simplifiError?.statusCode;
+    message = simplifiError?.message;
+    errorSourse = simplifiError?.errorSourse;
+  } else if (err instanceof AppError) {
+    statusCode = err?.statusCode;
+    message = err?.message;
+    errorSourse = [
+      {
+        path: '',
+        message: err.message,
+      },
+    ];
+  } else if (err instanceof Error) {
+    message = err?.message;
+    errorSourse = [
+      {
+        path: '',
+        message: err.message,
+      },
+    ];
   }
 
   return res.status(statusCode).json({
     success: false,
     message,
     errorSourse,
-    error: err,
+    // err,
+    stack: config.NODE_ENV === 'development' ? err?.stack : null,
   });
 };

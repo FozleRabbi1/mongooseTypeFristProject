@@ -1,4 +1,5 @@
-import express, { Application } from 'express';
+/* eslint-disable no-unused-vars */
+import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import { globalErrorHandler } from './app/middlwares/globalErrorHandler';
 import { notFuond } from './app/middlwares/notFound';
@@ -12,6 +13,11 @@ app.use(cors());
 
 app.use('/api/v1', router);
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const test = async (req: Request, res: Response) => {
+  //   Promise.reject();
+};
+app.get('/', test);
 // middlware api's
 app.use(globalErrorHandler);
 app.use(notFuond);
