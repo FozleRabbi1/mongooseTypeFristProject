@@ -4,30 +4,88 @@ import { User } from '../user/user.module';
 import { AppError } from '../../errors/appError';
 import httpStatus from 'http-status';
 import { TStudent } from './student.interface';
+import { QueryBuilder } from '../../builder/QueryBuilder';
+import { studentSearchableFild } from './student.constent';
 
 // =====>> create student
 
 // =====>> get all students
 const getAllStudentFromDB = async (query: Record<string, unknown>) => {
-  const studentSearchableFild = ['email', 'name.firstName', 'guardian'];
-  let searchTerm = '';
-  if (query.searchTerm) {
-    searchTerm = query?.searchTerm as string;
-  }
-  // {email : {$regex : query.searchTerm, $options : "i"}}
-  const result = await Student.find({
-    $or: studentSearchableFild.map((field) => ({
-      [field]: { $regex: searchTerm, $options: 'i' },
-    })),
-  })
-    .populate('admissionSemester')
-    .populate({
-      path: 'academicDepartment',
-      populate: {
-        path: 'academicFaculty',
-      },
-    });
+  const studentQuery = new QueryBuilder(
+    Student.find()
+      .populate('admissionSemester')
+      .populate({
+        path: 'academicDepartment',
+        populate: {
+          path: 'academicFaculty',
+        },
+      }),
+    query,
+  )
+    .search(studentSearchableFild)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+  const result = await studentQuery.modelQuery;
   return result;
+
+  // console.log('base query', query);
+  // const queryObj = { ...query }; // main data theke copy kora hoyeche
+  // let searchTerm = '';
+  // if (query.searchTerm) {
+  //   searchTerm = query?.searchTerm as string;
+  // }
+  // const searchQuery = Student.find({
+  //   $or: studentSearchableFild.map((field) =>
+  //     // {email : {$regex : query.searchTerm, $options : "i"}}
+  //     ({ [field]: { $regex: searchTerm, $options: 'i' } }),
+  //   ),
+  // });
+  // Filtering
+  // const excludeFilds = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
+  // excludeFilds.forEach((el) => delete queryObj[el]);
+  // const filterQuery = searchQuery
+  //   // যেই data গুলো main data fields এর সাথে exact match করে শুধু ঐ সমস্ত data-ই  queryObj এ আছে আর ঐ গুলোই find করবে
+  //   .find(queryObj)
+  //   .populate('admissionSemester')
+  //   .populate({
+  //     path: 'academicDepartment',
+  //     populate: {
+  //       path: 'academicFaculty',
+  //     },
+  //   });
+  //descending
+  // let sort = '-createdAt';
+  // if (query.sort) {
+  //   sort = query.sort as string;
+  // }
+  // const sortQuery = filterQuery.sort(sort);
+  // let limit = 2;
+  // let page = 1;
+  // let skip = 0;
+  // if (query.limit) {
+  //   limit = Number(query.limit);
+  // }
+  // if (query.page) {
+  //   page = Number(query.page);
+  //   skip = (page - 1) * limit;
+  // }
+  // const paginateQuery = sortQuery.skip(skip);
+  // const limitQuery = paginateQuery.limit(limit);
+  //============================>>>>>>>>>>>>>>  field limiting
+  // let fields = '-__v';
+  // // const projection: { [key: string]: 1 } = {};
+  // if (query.fields) {
+  //   fields = (query.fields as string).split(',').join(' ');
+  //   // fields = query.fields as string;             // ei vabe korleu hobe
+  //   // fields.split(',').forEach((field) => {
+  //   //   projection[field] = 1;
+  //   // });
+  // }
+  // const fieldsQuery = await limitQuery.select(fields);
+  // const fieldsQuery = await limitQuery.select(projection);
+  // return fieldsQuery;
 };
 
 // =======>> get single student

@@ -124,7 +124,7 @@ const studentSchema = new Schema<TStudent, StudentModel>(
 
 // virtual  (data base a exist nai but clint a ta show korbe,,, ekhane virtual fulll name k pathabe ,,, but DB te full name fild nai)
 studentSchema.virtual('fullName').get(function () {
-  return `${this.name.firstName} ${this.name.middleName} ${this.name.lastName} `;
+  return `${this?.name?.firstName} ${this?.name?.middleName} ${this?.name?.lastName} `;
 });
 
 // ========>>> delete query meddileware / hook
