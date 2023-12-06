@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import mongoose from 'mongoose';
+import mongoose, { Error } from 'mongoose';
 import config from '../../config';
 import { TAcademicSemester } from '../academicSemester/academicSemester.interface';
 import AcademicSemester from '../academicSemester/academicSemister.module';
@@ -13,7 +13,9 @@ import httpStatus from 'http-status';
 import { TFaculty } from '../Faculty/faculty.interface';
 import { FacultyModel } from '../Faculty/faculty.module';
 import { generateFacultuyId } from '../Faculty/faculty.utils';
+import { AcademicDepartment } from '../academicDepartment/academicDepartment.model';
 
+// ============>>>> create student
 const createStudentIntoDB = async (password: string, paylod: TStudent) => {
   // create a user Object
   const userData: Partial<TUser> = {};
@@ -55,17 +57,46 @@ const createStudentIntoDB = async (password: string, paylod: TStudent) => {
   }
 };
 
+// ============>>>> create faculty
 const createFacultyIntoDB = async (password: string, paylod: TFaculty) => {
   const facultyData: Partial<TUser> = {};
   facultyData.password = password || (config.default_pass as string);
   facultyData.role = 'faculty';
-  facultyData.id = await generateFacultuyId();
-  const newUser = await User.create(facultyData);
-  if (Object.keys(newUser).length) {
-    paylod.id = newUser.id;
-    paylod.user = newUser._id;
-    const result = await FacultyModel.create(paylod);
-    return result;
+  const isacademicDepartment = await AcademicDepartment.findById(
+    paylod.academicDepartment,
+  );
+  if (!isacademicDepartment) {
+    throw new Error('Academic Department not found');
+  }
+  const isFacultyExiest = await FacultyModel.findOne({
+    email: paylod.email,
+  });
+  if (isFacultyExiest) {
+    throw new Error('Faculty already exiestt');
+  }
+
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    facultyData.id = await generateFacultuyId();
+
+    const newUser = await User.create([facultyData], { session });
+    if (!newUser.length) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Faild to create user');
+    }
+    paylod.id = newUser[0].id;
+    paylod.user = newUser[0]._id;
+    const newFaculty = await FacultyModel.create([paylod], { session });
+    if (!newFaculty.length) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Faild to create Faculty');
+    }
+    await session.commitTransaction();
+    await session.endSession();
+    return newFaculty;
+  } catch (err: any) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new Error(err);
   }
 };
 

@@ -56,6 +56,15 @@ const FacultySchema = new Schema<TFaculty>(
   },
 );
 
+// FacultySchema.pre('save', async function () {
+//   const isFacultyExiest = await FacultyModel.findOne({
+//     email: this.email,
+//   });
+//   if (isFacultyExiest) {
+//     throw new Error('Faculty already exiestttttt');
+//   }
+// });
+
 // Create the Mongoose model
 export const FacultyModel = model<TFaculty>('Faculty', FacultySchema);
 
