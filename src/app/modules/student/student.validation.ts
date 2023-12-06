@@ -128,7 +128,7 @@ const updateStudentValidationSchema = z.object({
         .optional(),
       permanentAddress: z
         .string()
-        .min(1, { message: 'Permanent address is required' })
+        .min(1, { message: 'Permanent address is optional' })
         .optional(),
       guardian: updateGuardianValidationSchema.optional(),
       profilImage: z.string().optional(),

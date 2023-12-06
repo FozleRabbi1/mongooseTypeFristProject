@@ -10,6 +10,9 @@ import { User } from './user.module';
 import { generateStudentId } from './user.utils';
 import { AppError } from '../../errors/appError';
 import httpStatus from 'http-status';
+import { TFaculty } from '../Faculty/faculty.interface';
+import { FacultyModel } from '../Faculty/faculty.module';
+import { generateFacultuyId } from '../Faculty/faculty.utils';
 
 const createStudentIntoDB = async (password: string, paylod: TStudent) => {
   // create a user Object
@@ -18,7 +21,6 @@ const createStudentIntoDB = async (password: string, paylod: TStudent) => {
   userData.password = password || (config.default_pass as string);
   //set student role
   userData.role = 'student';
-
   const admissionSemester = await AcademicSemester.findById(
     paylod.admissionSemester,
   );
@@ -53,6 +55,21 @@ const createStudentIntoDB = async (password: string, paylod: TStudent) => {
   }
 };
 
+const createFacultyIntoDB = async (password: string, paylod: TFaculty) => {
+  const facultyData: Partial<TUser> = {};
+  facultyData.password = password || (config.default_pass as string);
+  facultyData.role = 'faculty';
+  facultyData.id = await generateFacultuyId();
+  const newUser = await User.create(facultyData);
+  if (Object.keys(newUser).length) {
+    paylod.id = newUser.id;
+    paylod.user = newUser._id;
+    const result = await FacultyModel.create(paylod);
+    return result;
+  }
+};
+
 export const UserService = {
   createStudentIntoDB,
+  createFacultyIntoDB,
 };
